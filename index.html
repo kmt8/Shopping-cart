@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Add To Cart</title>
+    <!-- Fontawesome cdn -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+        integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Bootstrap 4 cdn -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
+        integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+
+    <style>
+        .product {
+            border: none;
+        }
+
+        .product img {
+            height: 150px;
+            width: auto;
+            margin-bottom: -50px;
+            margin-left: 1rem;
+            transition: 0.5s;
+        }
+
+        .product:hover img {
+            transform: scale(1.05);
+        }
+
+        .product .card-title {
+            margin-top: 50px;
+        }
+
+        .img-in-cart {
+            height: 50px;
+        }
+
+        .overflow-scroll {
+            overflow: scroll;
+            overflow-x: hidden;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="">
+                    <div class="row">
+                        <!-- Shop side -->
+                        <div class="col-8 border-right min-vh-100">
+                            <div class="vh-100 overflow-scroll pr-2">
+                                <div class="d-flex justify-content-between align-items-end my-3 p-3 position-sticky bg-white"
+                                    style="top:0;z-index: 10">
+                                    <div class="">
+                                        <h4 class="text-primary mb-0">My Shop</h4>
+                                        <small class="text-black-50">Boostrap & jQUery</small>
+                                    </div>
+                                    <div class="">
+                                        <div class="form-row">
+                                            <div class="mr-3">
+                                                <input type="text" id="search" class="form-control"
+                                                    placeholder="Search Item..." autocomplete="off">
+                                            </div>
+                                            <div class="">
+                                                <select name="category" id="category" class="custom-select">
+                                                    <option value="0">All Category</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="products" class="card-columns">
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cart side -->
+                        <div class="col-4">
+                            <div class="vh-100 overflow-scroll">
+                                <div class="d-flex justify-content-between align-items-end my-3 p-3 position-sticky bg-white"
+                                    style="top:0;z-index: 10">
+                                    <div class="">
+                                        <h4 class="text-primary mb-0">My Cart</h4>
+                                        <small class="text-black-50">Added Item</small>
+                                    </div>
+                                    <div class="">
+                                        <h4>
+                                            <span class="item-in-cart-count">0</span>
+                                            <i class="fas fa-shopping-cart text-primary"></i>
+                                        </h4>
+                                    </div>
+                                </div>
+
+                                <div id="cart">
+
+                                </div>
+                                <div class="total position-sticky py-3 bg-white" style="bottom: 0">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery cdn -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+
+        // String To Short
+        function toShort(str, max = 120) {
+            if (str.length > max) {
+                return str.substring(0, max) + "......."
+            }
+            return str;
+        }
+
+        // Products
+        function toShow(x) {
+
+            $("#products").empty();// Clear products before append
+
+            x.map(product => {
+                $("#products").append(`
+                
+                    <div class="card product pt-4">
+                        <img src="${product.image}" class="card-img-top" alt="">
+                        <div class="card-body border">
+                            <p class="card-title font-weight-bold text-nowrap overflow-hidden">
+                                ${product.title}
+                            </p>
+                            <small class="text-black-50">
+                                ${toShort(product.description)}
+                            </small>
+                            
+                            <div class="d-flex justify-content-between align-items-end mt-3">
+                                <span class="font-weight-bold">$ ${product.price}</span>
+                                <button class="btn btn-sm btn-outline-primary add-to-cart" data-id="${product.id}">
+                                    Add <i class="fas fa-cart-plus"></i>
+                                </button>
+                            </div>
+                            
+                        </div>
+                    </div>
+                `)
+            });
+        }
+
+        let products = [];
+
+        // Get Product api
+        $.get("https://fakestoreapi.com/products", function (data) {
+            products = data;
+            toShow(products);
+        });
+
+        // Search Product filter
+        $("#search").on("keyup", function () {
+            let keyword = $(this).val().toLowerCase();
+
+            if (keyword.trim().length) { // no fillter space
+                let filterProducts = products.filter(product => {
+                    if (product.title.toLowerCase().indexOf(keyword) > -1) {
+                        return product;
+                    }
+                });
+                toShow(filterProducts);
+            }
+        });
+
+        // Get Categroy api
+        $.get("https://fakestoreapi.com/products/categories", function (data) {
+            data.map(cat => $("#category").append(`<option value="${cat}">${cat}</option>`))
+        })
+
+        // Filter Category
+        $("#category").on("change", function () {
+
+            let selectedCategory = $(this).val();
+            console.log(typeof selectedCategory);
+
+            if (selectedCategory != 0) {
+                let filterProducts = products.filter(product => {
+                    if (product.category === selectedCategory) {
+                        return product;
+                    }
+                })
+
+                toShow(filterProducts);
+            } else {
+                toShow(products);
+            }
+        });
+
+        // Add to cart
+        $("#products").delegate(".add-to-cart", "click", function () {
+            let currentItemId = $(this).attr("data-id");
+
+            let productInfo = products.filter(el => el.id == currentItemId)[0];
+
+            if ($(".item-in-cart").toArray().map(el => el.getAttribute("data-id")).includes(currentItemId)) {
+                alert("Already Added");
+            } else {
+                $("#cart").append(`
+                    <div class="card border-0 item-in-cart" data-id="${productInfo.id}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-item-end">
+                                <img src="${productInfo.image}" class="img-in-cart" alt="">
+                                <button class="btn btn-outline-danger remove-from-cart">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+
+                            <p class="mt-3">
+                                ${productInfo.title}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div class="form-row">
+                                    <button class="btn btn-outline-primary h-auto quantity-minus">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="text" class="form-control w-25 mx-2 quantity" unitPrice="${productInfo.price}" value="1" min="1">
+                                    <button class="btn btn-outline-primary quantity-plus">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <p class="mb-0">$ <span class="item-in-cart-cost">${productInfo.price}</span></p>
+                            </div>
+                            <hr>
+                        </div>
+                    </div>
+                `);
+            }
+            cartTotal();
+
+        });
+
+        // Card Total
+        function cartTotal() {
+
+            let count = $(".item-in-cart-cost").length;
+
+            $(".item-in-cart-count").html(count);
+
+
+            if (count > 0) {
+                let totalCost = $(".item-in-cart-cost").toArray().map(el => el.innerHTML).reduce((x, y) => Number(x) + Number(y));
+
+                $(".total").html(`
+
+                    <div class="d-flex justify-content-between font-weight-bold px-3">
+                        <h4>Total</h4>
+                        <h4>$ <span class="cart-cost-total">${Number(totalCost).toFixed(2)}</span></h4>
+                    </div>
+
+                `)
+            } else {
+                $(".total").html("empty cart");
+            }
+
+        }
+
+
+        // Remove from Cart
+        $("#cart").delegate(".remove-from-cart", "click", function () {
+
+            $(this).parentsUntil("#cart").remove();
+            cartTotal();
+
+        });
+
+        // Quantity Plus
+        $("#cart").delegate(".quantity-plus", "click", function () {
+
+            let q = $(this).siblings(".quantity").val();
+            let p = $(this).siblings(".quantity").attr("unitPrice");
+            let newQ = Number(q) + 1;
+            let newCost = p * newQ;
+
+            $(this).siblings(".quantity").val(newQ);
+            $(this).parent().siblings("p").find(".item-in-cart-cost").html(newCost.toFixed(2));
+            cartTotal();
+        });
+
+        // Quantity Minus
+        $("#cart").delegate(".quantity-minus", "click", function () {
+
+            let q = $(this).siblings(".quantity").val();
+            let p = $(this).siblings(".quantity").attr("unitPrice");
+            if (q > 1) {
+
+                let newQ = Number(q) - 1;
+                let newCost = p * newQ;
+
+                $(this).siblings(".quantity").val(newQ);
+                $(this).parent().siblings("p").find(".item-in-cart-cost").html(newCost.toFixed(2));
+                cartTotal();
+
+            }
+
+        });
+
+        // Type Quantity
+        $("#cart").delegate(".quantity", "keyup change", function () {
+
+            let q = $(this).val();
+            let p = $(this).attr("unitPrice");
+            if (q > 1) {
+
+                let newQ = Number(q);
+                let newCost = p * newQ;
+
+                $(this).val(newQ);
+                $(this).parent().siblings("p").find(".item-in-cart-cost").html(newCost.toFixed(2));
+                cartTotal();
+
+            } else {
+                alert("more than one");
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>
